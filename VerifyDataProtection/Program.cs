@@ -21,6 +21,7 @@ if (!Directory.Exists(keysDirectory))
 }
 
 builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
     .ProtectKeysWithCertificate(certificate)
     .SetApplicationName("VerifyDataProtection");
 
