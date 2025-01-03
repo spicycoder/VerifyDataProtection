@@ -9,6 +9,9 @@ var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), builder.Conf
 var certificatePassword = builder.Configuration["Certificate:Password"];
 var certificate = new X509Certificate2(certificatePath, certificatePassword);
 
+var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+logger.LogInformation($"Certificate Thumbprint: {certificate.Thumbprint}");
+
 var keysDirectory = Path.Combine(Directory.GetCurrentDirectory(), "DataProtection-Keys");
 if (!Directory.Exists(keysDirectory))
 {
@@ -16,7 +19,6 @@ if (!Directory.Exists(keysDirectory))
 }
 
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
     .ProtectKeysWithCertificate(certificate)
     .SetApplicationName("VerifyDataProtection");
 
