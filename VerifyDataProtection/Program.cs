@@ -5,6 +5,8 @@ using VerifyDataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), builder.Configuration["Certificate:Path"]);
 var certificatePassword = builder.Configuration["Certificate:Password"];
 var certificate = new X509Certificate2(certificatePath, certificatePassword);
@@ -28,6 +30,8 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
