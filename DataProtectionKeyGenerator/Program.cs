@@ -8,11 +8,8 @@ namespace DataProtectionKeyGenerator
     {
         static void Main(string[] args)
         {
-            // Hardcoded values
             string outputDir = $"{AppContext.BaseDirectory}/DataProtection-Keys";
-            string appName = "VerifyDataProtection";
-            string certPath = "./Certificates/VerifyDataProtection.pfx";
-            string certificatePassword = "YourPassword123!";
+            string subjectName = "VerifyDataProtection";
 
             try
             {
@@ -22,8 +19,18 @@ namespace DataProtectionKeyGenerator
                     Directory.CreateDirectory(outputDir);
                 }
 
-                // Load the certificate with the provided password
-                var certificate = new X509Certificate2(certPath, certificatePassword, X509KeyStorageFlags.Exportable);
+                using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                store.Open(OpenFlags.ReadOnly);
+                var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, subjectName, false);
+                var certificate = certificates
+                    .OfType<X509Certificate2>()
+                    .OrderByDescending(x => x.NotAfter)
+                    .FirstOrDefault();
+
+                if (certificate == null)
+                {
+                    throw new Exception("Certificate not found");
+                }
 
                 // Configure Data Protection
                 var services = new ServiceCollection();
@@ -31,7 +38,7 @@ namespace DataProtectionKeyGenerator
                     .AddDataProtection()
                     .PersistKeysToFileSystem(new DirectoryInfo(outputDir))
                     .ProtectKeysWithCertificate(certificate)
-                    .SetApplicationName(appName);
+                    .SetApplicationName(subjectName);
 
                 using (var serviceProvider = services.BuildServiceProvider())
                 {
