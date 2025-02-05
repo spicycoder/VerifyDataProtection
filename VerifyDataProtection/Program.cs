@@ -7,9 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), builder.Configuration["Certificate:Path"]);
-var certificatePassword = builder.Configuration["Certificate:Password"];
-var certificate = new X509Certificate2(certificatePath, certificatePassword);
+string certThumbprint = "YOUR_CERTIFICATE_THUMBPRINT";
+X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+store.Open(OpenFlags.ReadOnly);
+X509Certificate2Collection certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, certThumbprint, false);
+store.Close();
+
+//var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), builder.Configuration["Certificate:Path"]);
+//var certificatePassword = builder.Configuration["Certificate:Password"];
+//var certificate = new X509Certificate2(certificatePath, certificatePassword);
+var certificate = certCollection[0];
 
 var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
 logger.LogInformation($"Certificate Thumbprint: {certificate.Thumbprint}");
